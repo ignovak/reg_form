@@ -1,0 +1,61 @@
+<html>
+    <head>
+    </head>
+    <body>
+
+<script type="text/javascript">
+/* хуитка для куков */
+function createCookie(name,value,days) {
+ if (days) {
+ var date = new Date();
+ date.setTime(date.getTime()+(days*24*60*60*1000));
+ var expires = "; expires="+date.toGMTString();
+ }
+ else var expires = "";
+ document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function readCookie(name) {
+ var nameEQ = name + "=";
+ var ca = document.cookie.split(';');
+ for(var i=0;i < ca.length;i++) {
+ var c = ca[i];
+ while (c.charAt(0)==' ') c = c.substring(1,c.length);
+ if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+ }
+ return null;
+}
+
+function eraseCookie(name) {
+ createCookie(name,"",-1);
+}
+
+/* изменение фона из куки */
+
+window.onload = function readBg(){
+ choosedSel = readCookie('mySelValue');
+ mySel = document.getElementById('mySelect');
+ 
+ mySel.value = choosedSel;
+ myBg.style.background = '#' + mySel.value;
+}
+
+/* изменение фона и запись куки */
+
+function bgChange(){
+ mySel = document.getElementById('mySelect');
+ myBg = document.getElementById('myBg');
+ myBg.style.background = '#' + mySel.value;
+ document.cookie='mySelValue='+mySel.value+';expires=Mon, 1 Jan 2015 00:00:00 UTC'
+}
+</script>
+
+<select id="mySelect" onchange="bgChange()">
+ <option value="000">black</option>
+ <option value="ff0000">red</option>
+ <option value="00ff18">green</option>
+</select>
+<br><br>
+<div id="myBg" style="background:#999; width:100px; height:100px;"></div>
+    </body>
+<html>
