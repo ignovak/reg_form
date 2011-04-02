@@ -77,17 +77,27 @@ class Login(webapp.RequestHandler):
 
 class Register(webapp.RequestHandler):
   def get(self):
-    self.response.out.write("""
-      <html>
-        <body>
-          <form action='/register' method='post'>
-            <div><input type='text' name='name' /></div>
-            <div><input type='email' name='email' /></div>
-            <div><input type='password' name='password' /></div>
-            <div><input type='submit' value='Log In'></div>
-          </form>
-        </body>
-      </html>""")
+    template_values = {
+        'form' : [
+            {
+              'label': 'Email',
+              'type': 'email',
+              'name': 'email'
+            },
+            {
+              'label': 'Password',
+              'type': 'password',
+              'name': 'password'
+            },
+            {
+              'label': 'Name',
+              'type': 'text',
+              'name': 'name'
+            }
+          ]
+        }
+    path = os.path.join(os.path.dirname(__file__), 'registration.html')
+    self.response.out.write(template.render(path, template_values))
 
   def post(self):
     user = User()

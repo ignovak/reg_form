@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <link rel='stylesheet' href='static/main.css' />
+  </head>
+  <body>
+    <h1>Registration</h1>
+    <form action='/register' method='post'>
+      <dl class='register'>
+        {% for field in form %}
+          <dt>{{ field.label }}</dt>
+          <dd class='clearfix'>
+            <input type='{{ field.type }}' name='{{ field.name }}' />
+            {% if field.help_text %}
+              <div class='clearfix'>{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class='myerrors clearfix'>{{ field.errors }}</div>
+            {% endif %}
+          </dd>
+        {% endfor %}
+      </dl>
+      <input type='submit' value='Sign In' class='clearfix' />
+    </form>
+
+  </body>
+</html>
