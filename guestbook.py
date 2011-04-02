@@ -2,9 +2,12 @@ import os
 import cgi
 import datetime
 import wsgiref.handlers
+import uuid
+import logging
 
 from google.appengine.ext import db
 from google.appengine.api import users
+from google.appengine.api import memcache
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
@@ -20,20 +23,23 @@ class User(db.Model):
 
 class MainPage(webapp.RequestHandler):
   def get(self):
+    userName = self.__userName()
+    
     greetings_query = Greeting.all().order('-date')
     greetings = greetings_query.fetch(10)
 
-    if users.get_current_user():
-      url = users.create_logout_url(self.request.uri)
-      url_linktext = 'Logout'
-    else:
-      url = users.create_login_url(self.request.uri)
-      url_linktext = 'Login'
+    # if users.get_current_user():
+    #   url = users.create_logout_url(self.request.uri)
+    #   url_linktext = 'Logout'
+    # else:
+    #   url = users.create_login_url(self.request.uri)
+    #   url_linktext = 'Login'
 
     template_values = {
       'greetings': greetings,
-      'url': url,
-      'url_linktext': url_linktext,
+      # 'url': url,
+      # 'url_linktext': url_linktext,
+      'userName': userName
       }
 
     path = os.path.join(os.path.dirname(__file__), 'index.html')
@@ -48,6 +54,16 @@ class MainPage(webapp.RequestHandler):
     greeting.content = self.request.get('content')
     greeting.put()
     self.redirect('/')
+
+  def __userName(self):
+    sessionId = self.request.cookies.get('sid')
+    if sessionId:
+      userId = memcache.get(sessionId)
+      if userId is not None:
+        user = User.get_by_id(userId)
+        if user is not None:
+          return user.name
+
 
 class Login(webapp.RequestHandler):
   def get(self):
@@ -68,7 +84,11 @@ class Login(webapp.RequestHandler):
     user = User.all().filter('email =', email) \
             .filter('password =', password).get()
     if user is not None:
-      self.response.out.write('Thank you')
+      sessionId = str(uuid.uuid4()).replace('-','')
+      memcache.set(sessionId, user.key().id(), 36000)
+      self.response.headers.add_header('Set-Cookie',
+          'sid=%s; path=/' % sessionId)
+      # self.response.out.write('Thank you')
       self.redirect('/')
     else:
       self.response.out.write('Error')

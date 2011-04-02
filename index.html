@@ -17,7 +17,15 @@
       <div><input type='submit' value='Sign Guestbook'></div>
     </form>
 
-    <a href='{{ url }}'>{{ url_linktext }}</a>
+    <!-- <a href='{{ url }}'>{{ url_linktext }}</a> -->
+    {% if userName %}
+      You are logged in as {{ userName }}
+      <a href='/logout'>Logout</a>
+    {% else %}
+      Hi, guest
+      <a href='/login'>Login</a>
+      <a href='/register'>Register</a>
+    {% endif %}
 
   </body>
 </html>
