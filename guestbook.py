@@ -29,6 +29,11 @@ class Greeting(db.Model):
   content = db.StringProperty(multiline=True)
   date = db.DateTimeProperty(auto_now_add=True)
 
+class User(db.Model):
+  email = db.StringProperty()
+  password = db.StringProperty()
+  name = db.StringProperty()
+
 class MainPage(webapp.RequestHandler):
   def get(self):
     greetings_query = Greeting.all().order('-date')
@@ -50,7 +55,6 @@ class MainPage(webapp.RequestHandler):
     path = os.path.join(os.path.dirname(__file__), 'index.html')
     self.response.out.write(template.render(path, template_values))
     
-class Guestbook(webapp.RequestHandler):
   def post(self):
     greeting = Greeting()
 
@@ -61,10 +65,54 @@ class Guestbook(webapp.RequestHandler):
     greeting.put()
     self.redirect('/')
 
+class Login(webapp.RequestHandler):
+  def get(self):
+    self.response.out.write("""
+      <html>
+        <body>
+          <form action="/login" method="post">
+            <div><input type="email" name="email" /></div>
+            <div><input type="password" name="password" /></div>
+            <div><input type="submit" value="Log In"></div>
+          </form>
+        </body>
+      </html>""")
+
+  def post(self):
+    password = self.request.get("password")
+    email = self.request.get("email")
+    self.response.out.write(password)
+    self.response.out.write(email)
+
+class Register(webapp.RequestHandler):
+  def get(self):
+    self.response.out.write("""
+      <html>
+        <body>
+          <form action="/register" method="post">
+            <div><input type="text" name="name" /></div>
+            <div><input type="email" name="email" /></div>
+            <div><input type="password" name="password" /></div>
+            <div><input type="submit" value="Log In"></div>
+          </form>
+        </body>
+      </html>""")
+
+  def post(self):
+    email = self.request.get("email")
+    password = self.request.get("password")
+    name = self.request.get("name")
+
+    self.response.headers["Content-Type"] = "text/plain"
+    self.response.out.write("Email: %s\n" % email)
+    self.response.out.write("Password: %s\n" % password)
+    self.response.out.write("Name: %s\n" % name)
 
 application = webapp.WSGIApplication([
   ('/', MainPage),
-  ('/sign', Guestbook)
+  ('/register', Register),
+  ('/login', Login)
+  # ('/sign', Guestbook)
 ], debug=True)
 
 
