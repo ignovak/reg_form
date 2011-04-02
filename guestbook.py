@@ -2,14 +2,14 @@
 #
 # Copyright 2007 Google Inc.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -70,43 +70,54 @@ class Login(webapp.RequestHandler):
     self.response.out.write("""
       <html>
         <body>
-          <form action="/login" method="post">
-            <div><input type="email" name="email" /></div>
-            <div><input type="password" name="password" /></div>
-            <div><input type="submit" value="Log In"></div>
+          <form action='/login' method='post'>
+            <div><input type='email' name='email' /></div>
+            <div><input type='password' name='password' /></div>
+            <div><input type='submit' value='Log In'></div>
           </form>
         </body>
       </html>""")
 
   def post(self):
-    password = self.request.get("password")
-    email = self.request.get("email")
-    self.response.out.write(password)
-    self.response.out.write(email)
+    email = self.request.get('email')
+    password = self.request.get('password')
+    user = User.all().filter('email =', email) \
+            .filter('password =', password).get()
+    if user is not None:
+      self.response.out.write('Thank you')
+      self.redirect('/')
+    else:
+      self.response.out.write('Error')
+      self.redirect('/login')
+
 
 class Register(webapp.RequestHandler):
   def get(self):
     self.response.out.write("""
       <html>
         <body>
-          <form action="/register" method="post">
-            <div><input type="text" name="name" /></div>
-            <div><input type="email" name="email" /></div>
-            <div><input type="password" name="password" /></div>
-            <div><input type="submit" value="Log In"></div>
+          <form action='/register' method='post'>
+            <div><input type='text' name='name' /></div>
+            <div><input type='email' name='email' /></div>
+            <div><input type='password' name='password' /></div>
+            <div><input type='submit' value='Log In'></div>
           </form>
         </body>
       </html>""")
 
   def post(self):
-    email = self.request.get("email")
-    password = self.request.get("password")
-    name = self.request.get("name")
+    user = User()
+    user.email = self.request.get('email')
+    user.password = self.request.get('password')
+    user.name = self.request.get('name')
+    user.put()
 
-    self.response.headers["Content-Type"] = "text/plain"
-    self.response.out.write("Email: %s\n" % email)
-    self.response.out.write("Password: %s\n" % password)
-    self.response.out.write("Name: %s\n" % name)
+    self.response.out.write('Thank you')
+    self.redirect('/')
+    # self.response.headers['Content-Type'] = 'text/plain'
+    # self.response.out.write('Email: %s\n' % email)
+    # self.response.out.write('Password: %s\n' % password)
+    # self.response.out.write('Name: %s\n' % name)
 
 application = webapp.WSGIApplication([
   ('/', MainPage),
