@@ -3,9 +3,20 @@
     <link rel='stylesheet' href='static/main.css' />
   </head>
   <body>
+    <div id='head'>
+      {% if user %}
+        You are logged in as {{ user.name }}
+        <a href='/logout'>Logout</a>
+      {% else %}
+        Hi, guest
+        <a href='/login'>Login</a>
+        <a href='/register'>Register</a>
+      {% endif %}
+    </div>
+
     {% for greeting in greetings %}
       {% if greeting.author %}
-        <b>{{ greeting.author.nickname }}</b> wrote:
+        <b>{{ greeting.author }}</b> wrote:
       {% else %}
        An anonymous person wrote:
       {% endif %}
@@ -16,16 +27,6 @@
       <div><textarea name='content' rows='3' cols='60'></textarea></div>
       <div><input type='submit' value='Sign Guestbook'></div>
     </form>
-
-    <!-- <a href='{{ url }}'>{{ url_linktext }}</a> -->
-    {% if userName %}
-      You are logged in as {{ userName }}
-      <a href='/logout'>Logout</a>
-    {% else %}
-      Hi, guest
-      <a href='/login'>Login</a>
-      <a href='/register'>Register</a>
-    {% endif %}
 
   </body>
 </html>

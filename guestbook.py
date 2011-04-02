@@ -12,7 +12,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
 class Greeting(db.Model):
-  author = db.UserProperty()
+  author = db.StringProperty()
   content = db.StringProperty(multiline=True)
   date = db.DateTimeProperty(auto_now_add=True)
 
@@ -23,33 +23,25 @@ class User(db.Model):
 
 class MainPage(webapp.RequestHandler):
   def get(self):
-    userName = self.__userName()
+    user = self.__userName()
     
     greetings_query = Greeting.all().order('-date')
     greetings = greetings_query.fetch(10)
 
-    # if users.get_current_user():
-    #   url = users.create_logout_url(self.request.uri)
-    #   url_linktext = 'Logout'
-    # else:
-    #   url = users.create_login_url(self.request.uri)
-    #   url_linktext = 'Login'
-
     template_values = {
       'greetings': greetings,
-      # 'url': url,
-      # 'url_linktext': url_linktext,
-      'userName': userName
+      'user': user
       }
 
     path = os.path.join(os.path.dirname(__file__), 'index.html')
     self.response.out.write(template.render(path, template_values))
     
   def post(self):
+    user = self.__userName()
     greeting = Greeting()
 
-    if users.get_current_user():
-      greeting.author = users.get_current_user()
+    if user:
+      greeting.author = user.name
 
     greeting.content = self.request.get('content')
     greeting.put()
@@ -60,9 +52,7 @@ class MainPage(webapp.RequestHandler):
     if sessionId:
       userId = memcache.get(sessionId)
       if userId is not None:
-        user = User.get_by_id(userId)
-        if user is not None:
-          return user.name
+        return User.get_by_id(userId)
 
 
 class Login(webapp.RequestHandler):
@@ -88,12 +78,19 @@ class Login(webapp.RequestHandler):
       memcache.set(sessionId, user.key().id(), 36000)
       self.response.headers.add_header('Set-Cookie',
           'sid=%s; path=/' % sessionId)
-      # self.response.out.write('Thank you')
       self.redirect('/')
     else:
       self.response.out.write('Error')
       self.redirect('/login')
 
+class Logout(webapp.RequestHandler):
+  def get(self):
+    sessionId = self.request.cookies.get('sid')
+    if sessionId:
+      memcache.delete(sessionId)
+      self.response.headers.add_header('Set-Cookie', 'sid=; path=/')
+
+    self.redirect('/')
 
 class Register(webapp.RequestHandler):
   def get(self):
@@ -128,16 +125,12 @@ class Register(webapp.RequestHandler):
 
     self.response.out.write('Thank you')
     self.redirect('/')
-    # self.response.headers['Content-Type'] = 'text/plain'
-    # self.response.out.write('Email: %s\n' % email)
-    # self.response.out.write('Password: %s\n' % password)
-    # self.response.out.write('Name: %s\n' % name)
 
 application = webapp.WSGIApplication([
   ('/', MainPage),
   ('/register', Register),
-  ('/login', Login)
-  # ('/sign', Guestbook)
+  ('/login', Login),
+  ('/logout', Logout)
 ], debug=True)
 
 
