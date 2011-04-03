@@ -107,9 +107,11 @@ class Register(webapp.RequestHandler):
   
   def get(self):
     ERROR_MESSAGES = {
+        'tooLongValue': 'The value is too long.',
         'wrongEmail': 'Sorry, such email already exists.',
         'wrongPassword': 'Password should contain only English letters, numbers or underscores.',
-        'wrongConfirmation': 'Passwords don\'t match.'
+        'wrongConfirmation': 'Passwords don\'t match.',
+        'wrongName': 'Sorry, name should contain only English letters, numbers or underscores.'
     }
     template_values = {
         'error' : ERROR_MESSAGES.get(self.request.get('error')),
@@ -142,6 +144,10 @@ class Register(webapp.RequestHandler):
     self.response.out.write(template.render(path, template_values))
 
   def __error(self):
+    for i in [self.email, self.password, self.confirmPassword, self.name]:
+      if len(i) > 100:
+        return 'tooLongValue'
+
     if User.all().filter('email =', self.email).get() is not None:
       return 'wrongEmail'
 
@@ -163,8 +169,13 @@ class Register(webapp.RequestHandler):
 
     error = self.__error()
     if error:
-      self.redirect('/register?email=%s&name=%s&error=%s' % \
-          (self.email, self.name, error))
+      errorUrl = '/register?error=' + error
+      if error != 'tooLongValue':
+        errorUrl += '&email=' + self.email
+        if error != 'wrongName':
+          errorUrl += '&name=' + self.name
+      self.redirect(errorUrl)
+
     else:
       salt = str(uuid.uuid4()).replace('-','')
       passwordHash = hashlib.sha1(self.password + salt).hexdigest()
