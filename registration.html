@@ -12,7 +12,8 @@
         {% for field in form %}
           <dt>{{ field.label }}</dt>
           <dd class='clearfix'>
-            <input type='{{ field.type }}' name='{{ field.name }}' />
+            <input type='{{ field.type }}' name='{{ field.name }}'
+              value='{{ field.value }}' />
             {% if field.help_text %}
               <div class='clearfix'>{{ field.help_text }}</div>
             {% endif %}

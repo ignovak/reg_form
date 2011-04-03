@@ -65,7 +65,8 @@ class Login(webapp.RequestHandler):
         'wrongEmail': 'Email not found.'
     }
     template_values = {
-        'error' : ERROR_MESSAGES.get(self.request.get('error'))
+        'error': ERROR_MESSAGES.get(self.request.get('error')),
+        'email': self.request.get('email')
         }
     path = os.path.join(os.path.dirname(__file__), 'login.html')
     self.response.out.write(template.render(path, template_values))
@@ -88,10 +89,10 @@ class Login(webapp.RequestHandler):
         self.redirect('/')
 
       else:
-        self.redirect('/login?error=wrongPassword')
+        self.redirect('/login?error=wrongPassword&email=' + email)
 
     else:
-      self.redirect('/login?error=wrongEmail')
+      self.redirect('/login?error=wrongEmail&email=' + email)
 
 class Logout(webapp.RequestHandler):
   def get(self):
@@ -116,22 +117,24 @@ class Register(webapp.RequestHandler):
             {
               'label': 'Email',
               'type': 'email',
-              'name': 'email'
+              'name': 'email',
+              'value': self.request.get('email')
             },
             {
               'label': 'Password',
               'type': 'password',
-              'name': 'password'
+              'name': 'password',
             },
             {
               'label': 'Confirm password',
               'type': 'password',
-              'name': 'confirmPassword'
+              'name': 'confirmPassword',
             },
             {
               'label': 'Name',
               'type': 'text',
-              'name': 'name'
+              'name': 'name',
+              'value': self.request.get('name')
             }
           ]
         }
@@ -160,7 +163,8 @@ class Register(webapp.RequestHandler):
 
     error = self.__error()
     if error:
-      self.redirect('/register?error=' + error)
+      self.redirect('/register?email=%s&name=%s&error=%s' % \
+          (self.email, self.name, error))
     else:
       salt = str(uuid.uuid4()).replace('-','')
       passwordHash = hashlib.sha1(self.password + salt).hexdigest()
