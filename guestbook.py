@@ -59,16 +59,16 @@ class MainPage(webapp.RequestHandler):
 
 class Login(webapp.RequestHandler):
   def get(self):
-    self.response.out.write("""
-      <html>
-        <body>
-          <form action='/login' method='post'>
-            <div><input type='email' name='email' /></div>
-            <div><input type='password' name='password' /></div>
-            <div><input type='submit' value='Log In'></div>
-          </form>
-        </body>
-      </html>""")
+    ERROR_MESSAGES = {
+        'wrongPassword': 'Password is incorrect',
+        'wrongEmail': 'Email not found'
+    }
+    template_values = {
+        'error' : ERROR_MESSAGES.get(self.request.get('error'))
+        }
+    path = os.path.join(os.path.dirname(__file__), 'login.html')
+    self.response.out.write(template.render(path, template_values))
+
 
   def post(self):
     email = self.request.get('email')
@@ -80,7 +80,6 @@ class Login(webapp.RequestHandler):
 
       if user.password == passwordHash:
       # if user.password == unicode(passwordHash):
-        logging.info('here')
         sessionId = str(uuid.uuid4()).replace('-','')
         memcache.set(sessionId, user.key().id(), 36000)
         self.response.headers.add_header('Set-Cookie',
@@ -88,10 +87,10 @@ class Login(webapp.RequestHandler):
         self.redirect('/')
 
       else:
-        self.redirect('/login')
+        self.redirect('/login?error=wrongPassword')
 
     else:
-      self.redirect('/login')
+      self.redirect('/login?error=wrongEmail')
 
 class Logout(webapp.RequestHandler):
   def get(self):
