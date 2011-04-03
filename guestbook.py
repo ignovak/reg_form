@@ -1,3 +1,4 @@
+import re
 import os
 import cgi
 import datetime
@@ -60,8 +61,8 @@ class MainPage(webapp.RequestHandler):
 class Login(webapp.RequestHandler):
   def get(self):
     ERROR_MESSAGES = {
-        'wrongPassword': 'Password is incorrect',
-        'wrongEmail': 'Email not found'
+        'wrongPassword': 'Password is incorrect.',
+        'wrongEmail': 'Email not found.'
     }
     template_values = {
         'error' : ERROR_MESSAGES.get(self.request.get('error'))
@@ -69,17 +70,17 @@ class Login(webapp.RequestHandler):
     path = os.path.join(os.path.dirname(__file__), 'login.html')
     self.response.out.write(template.render(path, template_values))
 
-
   def post(self):
     email = self.request.get('email')
     user = User.all().filter('email =', email).get()
     if user is not None:
       salt = user.salt
       password = self.request.get('password')
+      if re.match('^\w+$', password) is None:
+        password = ''
       passwordHash = hashlib.sha1(password + salt).hexdigest()
 
       if user.password == passwordHash:
-      # if user.password == unicode(passwordHash):
         sessionId = str(uuid.uuid4()).replace('-','')
         memcache.set(sessionId, user.key().id(), 36000)
         self.response.headers.add_header('Set-Cookie',
@@ -102,8 +103,15 @@ class Logout(webapp.RequestHandler):
     self.redirect('/')
 
 class Register(webapp.RequestHandler):
+  
   def get(self):
+    ERROR_MESSAGES = {
+        'wrongEmail': 'Sorry, such email already exists.',
+        'wrongPassword': 'Password should contain only English letters, numbers or underscores.',
+        'wrongConfirmation': 'Passwords don\'t match.'
+    }
     template_values = {
+        'error' : ERROR_MESSAGES.get(self.request.get('error')),
         'form' : [
             {
               'label': 'Email',
@@ -116,6 +124,11 @@ class Register(webapp.RequestHandler):
               'name': 'password'
             },
             {
+              'label': 'Confirm password',
+              'type': 'password',
+              'name': 'confirmPassword'
+            },
+            {
               'label': 'Name',
               'type': 'text',
               'name': 'name'
@@ -125,20 +138,41 @@ class Register(webapp.RequestHandler):
     path = os.path.join(os.path.dirname(__file__), 'registration.html')
     self.response.out.write(template.render(path, template_values))
 
+  def __error(self):
+    if User.all().filter('email =', self.email).get() is not None:
+      return 'wrongEmail'
+
+    if re.match('^\w+$', self.password) is None:
+      return 'wrongPassword'
+
+    if self.password != self.confirmPassword:
+      return 'wrongConfirmation'
+
+    if re.match('^\w+$', self.name) is None:
+      return 'wrongName'
+
+
   def post(self):
-    password = self.request.get('password')
-    salt = str(uuid.uuid4()).replace('-','')
-    passwordHash = hashlib.sha1(password + salt).hexdigest()
+    self.email = self.request.get('email')
+    self.password = self.request.get('password')
+    self.confirmPassword = self.request.get('confirmPassword')
+    self.name = self.request.get('name')
 
-    user = User()
-    user.email = self.request.get('email')
-    user.password = str(passwordHash)
-    user.salt = salt
-    user.name = self.request.get('name')
-    user.put()
+    error = self.__error()
+    if error:
+      self.redirect('/register?error=' + error)
+    else:
+      salt = str(uuid.uuid4()).replace('-','')
+      passwordHash = hashlib.sha1(self.password + salt).hexdigest()
 
-    self.response.out.write('Thank you')
-    self.redirect('/')
+      user = User()
+      user.email = self.email
+      user.password = str(passwordHash)
+      user.salt = salt
+      user.name = self.name
+      user.put()
+
+      self.redirect('/')
 
 application = webapp.WSGIApplication([
   ('/', MainPage),
