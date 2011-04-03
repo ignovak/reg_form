@@ -3,6 +3,7 @@ import cgi
 import datetime
 import wsgiref.handlers
 import uuid
+import hashlib
 import logging
 
 from google.appengine.ext import db
@@ -20,6 +21,7 @@ class User(db.Model):
   email = db.StringProperty()
   password = db.StringProperty()
   name = db.StringProperty()
+  salt = db.StringProperty()
 
 class MainPage(webapp.RequestHandler):
   def get(self):
@@ -70,17 +72,25 @@ class Login(webapp.RequestHandler):
 
   def post(self):
     email = self.request.get('email')
-    password = self.request.get('password')
-    user = User.all().filter('email =', email) \
-            .filter('password =', password).get()
+    user = User.all().filter('email =', email).get()
     if user is not None:
-      sessionId = str(uuid.uuid4()).replace('-','')
-      memcache.set(sessionId, user.key().id(), 36000)
-      self.response.headers.add_header('Set-Cookie',
-          'sid=%s; path=/' % sessionId)
-      self.redirect('/')
+      salt = user.salt
+      password = self.request.get('password')
+      passwordHash = hashlib.sha1(password + salt).hexdigest()
+
+      if user.password == passwordHash:
+      # if user.password == unicode(passwordHash):
+        logging.info('here')
+        sessionId = str(uuid.uuid4()).replace('-','')
+        memcache.set(sessionId, user.key().id(), 36000)
+        self.response.headers.add_header('Set-Cookie',
+            'sid=%s; path=/' % sessionId)
+        self.redirect('/')
+
+      else:
+        self.redirect('/login')
+
     else:
-      self.response.out.write('Error')
       self.redirect('/login')
 
 class Logout(webapp.RequestHandler):
@@ -117,9 +127,14 @@ class Register(webapp.RequestHandler):
     self.response.out.write(template.render(path, template_values))
 
   def post(self):
+    password = self.request.get('password')
+    salt = str(uuid.uuid4()).replace('-','')
+    passwordHash = hashlib.sha1(password + salt).hexdigest()
+
     user = User()
     user.email = self.request.get('email')
-    user.password = self.request.get('password')
+    user.password = str(passwordHash)
+    user.salt = salt
     user.name = self.request.get('name')
     user.put()
 
