@@ -1,2 +1,16 @@
-Registration form on GAE
-UA WebChallenge
+Simple guestbook with registration form
+UA WebChallenge 2011
+Author: Igor Novak
+Email: bezengi@gmail.com
+
+framework:  Google App Engine, v.1.4.2
+language: Python 2.5
+
+Application can be launched on any common OS using dev_appserver.py
+More details here: http://code.google.com/appengine/docs/
+
+Also the live version of application is available here:
+http://i-novak.appspot.com/
+
+The copy of application can be found here:
+https://github.com/ignovak/reg_form
