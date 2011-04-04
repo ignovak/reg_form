@@ -10,6 +10,7 @@ import logging
 from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.api import memcache
+from google.appengine.api import mail
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 
@@ -19,13 +20,17 @@ class Greeting(db.Model):
   date = db.DateTimeProperty(auto_now_add=True)
 
 class User(db.Model):
-  email = db.StringProperty()
+  email = db.EmailProperty()
   password = db.StringProperty()
   name = db.StringProperty()
   salt = db.StringProperty()
 
 class MainPage(webapp.RequestHandler):
   def get(self):
+    MESSAGES = {
+        'regSuccessful': 'You are successfully registered.',
+        'loginSuccessful': ''
+    }
     user = self.__userName()
     
     greetings_query = Greeting.all().order('-date')
@@ -33,6 +38,7 @@ class MainPage(webapp.RequestHandler):
 
     template_values = {
       'greetings': greetings,
+      'message': MESSAGES.get(self.request.get('message')),
       'user': user
       }
 
@@ -62,6 +68,7 @@ class Login(webapp.RequestHandler):
   def get(self):
     ERROR_MESSAGES = {
         'wrongPassword': 'Password is incorrect.',
+        'incorrectEmail': 'Please, enter valid email address.',
         'wrongEmail': 'Email not found.'
     }
     template_values = {
@@ -73,26 +80,29 @@ class Login(webapp.RequestHandler):
 
   def post(self):
     email = self.request.get('email')
-    user = User.all().filter('email =', email).get()
-    if user is not None:
-      salt = user.salt
-      password = self.request.get('password')
-      if re.match('^\w+$', password) is None:
-        password = ''
-      passwordHash = hashlib.sha1(password + salt).hexdigest()
+    if re.match('^[-.\w]+@(?:[a-z\d][-a-z\d]+\.)+[a-z]{2,6}$', email) is None:
+      self.redirect('/login?error=incorrectEmail')
+    else:
+      user = User.all().filter('email =', email).get()
+      if user is not None:
+        salt = user.salt
+        password = self.request.get('password')
+        if re.match('^\w+$', password) is None:
+          password = ''
+        passwordHash = hashlib.sha1(password + salt).hexdigest()
 
-      if user.password == passwordHash:
-        sessionId = str(uuid.uuid4()).replace('-','')
-        memcache.set(sessionId, user.key().id(), 36000)
-        self.response.headers.add_header('Set-Cookie',
-            'sid=%s; path=/' % sessionId)
-        self.redirect('/')
+        if user.password == passwordHash:
+          sessionId = str(uuid.uuid4()).replace('-','')
+          memcache.set(sessionId, user.key().id(), 36000)
+          self.response.headers.add_header('Set-Cookie',
+              'sid=%s; path=/' % sessionId)
+          self.redirect('/')
+
+        else:
+          self.redirect('/login?error=wrongPassword&email=' + email)
 
       else:
-        self.redirect('/login?error=wrongPassword&email=' + email)
-
-    else:
-      self.redirect('/login?error=wrongEmail&email=' + email)
+        self.redirect('/login?error=wrongEmail&email=' + email)
 
 class Logout(webapp.RequestHandler):
   def get(self):
@@ -108,7 +118,9 @@ class Register(webapp.RequestHandler):
   def get(self):
     ERROR_MESSAGES = {
         'tooLongValue': 'The value is too long.',
+        'emptyField': 'Required fields are not filled.',
         'wrongEmail': 'Sorry, such email already exists.',
+        'incorrectEmail': 'Please, enter valid email address.',
         'wrongPassword': 'Password should contain only English letters, numbers or underscores.',
         'wrongConfirmation': 'Passwords don\'t match.',
         'wrongName': 'Sorry, name should contain only English letters, numbers or underscores.'
@@ -147,6 +159,11 @@ class Register(webapp.RequestHandler):
     for i in [self.email, self.password, self.confirmPassword, self.name]:
       if len(i) > 100:
         return 'tooLongValue'
+      if len(i) == 0:
+        return 'emptyField'
+
+    if re.match('^[-.\w]+@(?:[a-z\d][-a-z\d]+\.)+[a-z]{2,6}$', self.email) is None:
+      return 'incorrectEmail'
 
     if User.all().filter('email =', self.email).get() is not None:
       return 'wrongEmail'
@@ -170,7 +187,7 @@ class Register(webapp.RequestHandler):
     error = self.__error()
     if error:
       errorUrl = '/register?error=' + error
-      if error != 'tooLongValue':
+      if error != 'tooLongValue' and error != 'incorrectEmail':
         errorUrl += '&email=' + self.email
         if error != 'wrongName':
           errorUrl += '&name=' + self.name
@@ -187,7 +204,7 @@ class Register(webapp.RequestHandler):
       user.name = self.name
       user.put()
 
-      self.redirect('/')
+      self.redirect('/?message=regSuccessful')
 
 application = webapp.WSGIApplication([
   ('/', MainPage),

@@ -1,6 +1,100 @@
+@charset "UTF-8";
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    /* font-size: 100%; */
+    vertical-align: baseline;
+    background: transparent;
+}
+
 body {
-  font-family: Verdana, Helvetica, sans-serif;
-  background-color: #DDDDDD;
+    background-color: #caced2;
+    font-family: Verdana, Helvetica, sans-serif;
+    line-height: 1;
+}
+
+fieldset {
+    width: 725px;
+    margin: 0px auto;
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+h2 {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #0066cc;
+    line-height: 1.2em;
+    margin: 0 0 15px 0;
+    padding: 0;
+}
+#head {
+    font-size: 0.8em;
+}
+
+li em {
+    color: red;
+}
+ 
+li label {
+    display: inline-block;
+    min-width: 100px;
+}
+ 
+#header {
+    background: -webkit-gradient(linear, 0 top, 0 bottom, from(#707480), to(#404450));
+    padding: 10px;
+    text-align: center;
+    color: #fff;
+}
+
+.splitter {
+    background-color: #eef;
+    border-bottom: 1px solid #aaa;
+    height: 2px;
+}
+
+.content {
+    margin: 0 auto;
+    min-height: 300px;
+    min-width: 580px;
+    width: 70%;
+}
+
+.details {
+    background-color: #fff;
+    background-image: url(bg.gif);
+    background-repeat: repeat-x;
+    background-position: center bottom;
+    border-radius: 8px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    box-shadow: 0px 0px 8px #41464c;
+
+    width: 665px;
+    margin: 14px auto;
+    padding: 20px 30px;
+}
+
+.details ol {
+    color: #41464c;
+}
+.details li {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+    border-bottom: 1px solid #DDE1E6;
+    border-top: 1px solid #FFFFFF;
+}
+
+fieldset.beta {
+    width:525px;
+}
+
+ol.beta {
+	width:525px;
 }
 
 .error {

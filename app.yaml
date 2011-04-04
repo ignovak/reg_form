@@ -1,5 +1,5 @@
-application: guestbook
-version: 1
+application: i-novak
+version: guestbook
 runtime: python
 api_version: 1
 

@@ -1,7 +1,11 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-  <div id='head'>
+  <h2 id='head'>
+    {% if message %}
+      {{ message }}
+      <br />
+    {% endif %}
     {% if user %}
       You are logged in as {{ user.name }}
       <a href='/logout'>Logout</a>
@@ -10,19 +14,24 @@
       <a href='/login'>Login</a>
       <a href='/register'>Register</a>
     {% endif %}
-  </div>
+  </h2>
 
-  {% for greeting in greetings %}
-    {% if greeting.author %}
-      <b>{{ greeting.author }}</b> wrote:
-    {% else %}
-     An anonymous person wrote:
-    {% endif %}
-    <blockquote>{{ greeting.content|escape }}</blockquote>
-  {% endfor %}
-
-  <form action='/' method='post'>
-    <div><textarea name='content' rows='3' cols='60'></textarea></div>
-    <div><input type='submit' value='Sign Guestbook'></div>
-  </form>
+  <ol class="details beta">
+    {% for greeting in greetings %}
+      <li>
+        {% if greeting.author %}
+          <b>{{ greeting.author }}</b> wrote:
+        {% else %}
+         An anonymous person wrote:
+        {% endif %}
+        <blockquote>{{ greeting.content|escape }}</blockquote>
+      </li>
+    {% endfor %}
+    <li>
+      <form action='/' method='post'>
+        <div><textarea name='content' rows='3' cols='60'></textarea></div>
+        <div><input type='submit' value='Sign Guestbook'></div>
+      </form>
+    </li>
+  </ol>
 {% endblock %}

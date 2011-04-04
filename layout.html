@@ -7,12 +7,22 @@
   </head>
   <body>
     <!-- <div id="header"></div> -->
-    <h1>Guestbook</h1>
-    <div id="nav">
-    </div>
-    <div id="content">
-      {% block content %}
-      {% endblock %}
+    <div class="container_top">
+      <h1 id="header">Guestbook</h1>
+      <div class="splitter"></div>
+      <div id="nav">
+      </div>
+      <div class="content">
+        <fieldset class="beta">
+          {% block content %}
+          {% endblock %}
+            <!-- <h2>User statistics</h2> -->
+            <!--   <form> -->
+            <!--     <ol class="details beta"> -->
+            <!--     </ol> -->
+            <!-- </form> -->
+        </fieldset>
+      </div>
     </div>
   </body>
 </html>
