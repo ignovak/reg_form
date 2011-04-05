@@ -8,15 +8,15 @@
     {% endif %}
     {% if user %}
       You are logged in as {{ user.name }}
-      <a href='/logout'>Logout</a>
+      <a id='logout_btn' href='#logout'>Logout</a>
     {% else %}
       Hi, guest
-      <a href='/login'>Login</a>
+      <a id='login_btn' href='#login'>Login</a>
       <a href='/register'>Register</a>
     {% endif %}
   </h2>
 
-  <ol class="details beta">
+  <ol id='greetings' class="details beta">
     {% for greeting in greetings %}
       <li>
         {% if greeting.author %}
@@ -36,8 +36,24 @@
         <div><input type='submit' value='Sign Guestbook'></div>
       </form>
     </li>
-    <!--{% if error %}-->
-    <!--  <li class='error'>{{ error }}</li>-->
-    <!--{% endif %}-->
   </ol>
+
+  <ol id='login_form' class="details beta">
+    <form action='/login' method='post'>
+      {% if error %}
+        <li class='error'>{{ error }}</li>
+      {% endif %}
+      <li>
+        <label>Email:</label>
+        <input type='text' name='email' value='{{ email }}' />
+      </li>
+      <li><label>Password:</label><input type='password' name='password' /></li>
+    	<li><input type='submit' value='Log In' class='clearfix' /></li>
+    </form>
+  </ol>
+
+{% endblock %}
+
+{% block scripts %}
+  <script type="text/javascript" src='static/index.js'></script>
 {% endblock %}

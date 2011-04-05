@@ -98,6 +98,9 @@ class Login(webapp.RequestHandler):
     self.response.out.write(template.render(path, template_values))
 
   def post(self):
+    if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+      logging.info('xhr')
+
     email = self.request.get('email')
     if re.match('^[-.\w]+@(?:[a-z\d][-a-z\d]+\.)+[a-z]{2,6}$', email) is None:
       self.redirect('/login?error=incorrectEmail')

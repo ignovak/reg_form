@@ -47,7 +47,10 @@ li label {
     background: -webkit-gradient(linear, 0 top, 0 bottom, from(#707480), to(#404450));
     padding: 10px;
     text-align: center;
+}
+#header a, #header a:visited, #header a:hover {
     color: #fff;
+    text-decoration: none;
 }
 
 .splitter {
@@ -99,4 +102,8 @@ ol.beta {
 
 .error {
   color: red;
+}
+
+#login_form {
+  display: none;
 }
