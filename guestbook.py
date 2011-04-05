@@ -147,6 +147,7 @@ class Register(webapp.RequestHandler):
 
     template_values = {
         'error' : ERROR_MESSAGES.get(self.request.get('error')),
+        'errorMessages' : ERROR_MESSAGES,
         'form' : [
             {
               'label': 'Email',

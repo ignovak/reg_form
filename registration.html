@@ -11,11 +11,17 @@
       <li>
         <label>{{ field.label }}<em>*</em></label>
         <input type='{{ field.type }}' name='{{ field.name }}'
-            value='{{ field.value }}' />
+            id='{{ field.name }}' value='{{ field.value }}' />
       </li>
       {% endfor %}
     	<li><input type='submit' value='Sign In' class='clearfix' /></li>
     </ol>
   </form>
 {% endblock %}
-<script type="text/javascript" src='static/registration.js'></script>
+
+{% block scripts %}
+  <script type="text/javascript" src='static/registration.js'></script>
+  <script type="text/javascript">
+    var ERROR_MESSAGES = {{ errorMessages }}
+  </script>
+{% endblock %}
