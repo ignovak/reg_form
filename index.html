@@ -30,8 +30,14 @@
     <li>
       <form action='/' method='post'>
         <div><textarea name='content' rows='3' cols='60'></textarea></div>
+        {% if error %}
+          <div class='error'>{{ error }}</div>
+        {% endif %}
         <div><input type='submit' value='Sign Guestbook'></div>
       </form>
     </li>
+    <!--{% if error %}-->
+    <!--  <li class='error'>{{ error }}</li>-->
+    <!--{% endif %}-->
   </ol>
 {% endblock %}

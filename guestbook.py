@@ -16,7 +16,7 @@ from google.appengine.ext.webapp import template
 
 class Greeting(db.Model):
   author = db.StringProperty()
-  content = db.StringProperty(multiline=True)
+  content = db.TextProperty()
   date = db.DateTimeProperty(auto_now_add=True)
 
 class User(db.Model):
@@ -31,6 +31,11 @@ class MainPage(webapp.RequestHandler):
         'regSuccessful': 'You are successfully registered.',
         'loginSuccessful': ''
     }
+    ERROR_MESSAGES = {
+        'tooLongValue': 'Your message is too long.',
+        'emptyField': 'Message can\'t be empty.',
+    }
+
     user = self.__userName()
     
     greetings_query = Greeting.all().order('-date')
@@ -39,6 +44,7 @@ class MainPage(webapp.RequestHandler):
     template_values = {
       'greetings': greetings,
       'message': MESSAGES.get(self.request.get('message')),
+      'error': ERROR_MESSAGES.get(self.request.get('error')),
       'user': user
       }
 
@@ -46,15 +52,28 @@ class MainPage(webapp.RequestHandler):
     self.response.out.write(template.render(path, template_values))
     
   def post(self):
-    user = self.__userName()
-    greeting = Greeting()
+    self.content = self.request.get('content')
 
-    if user:
-      greeting.author = user.name
+    error = self.__error()
+    if error:
+      self.redirect('/?error=' + error)
 
-    greeting.content = self.request.get('content')
-    greeting.put()
-    self.redirect('/')
+    else:
+      user = self.__userName()
+      greeting = Greeting()
+
+      if user:
+        greeting.author = user.name
+
+      greeting.content = self.content
+      greeting.put()
+      self.redirect('/')
+
+  def __error(self):
+    if len(self.content) > 500:
+      return 'tooLongValue'
+    if len(self.content) == 0:
+      return 'emptyField'
 
   def __userName(self):
     sessionId = self.request.cookies.get('sid')
@@ -125,12 +144,13 @@ class Register(webapp.RequestHandler):
         'wrongConfirmation': 'Passwords don\'t match.',
         'wrongName': 'Sorry, name should contain only English letters, numbers or underscores.'
     }
+
     template_values = {
         'error' : ERROR_MESSAGES.get(self.request.get('error')),
         'form' : [
             {
               'label': 'Email',
-              'type': 'email',
+              'type': 'text',
               'name': 'email',
               'value': self.request.get('email')
             },
