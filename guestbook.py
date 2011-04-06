@@ -85,55 +85,76 @@ class MainPage(webapp.RequestHandler):
 
 class Login(webapp.RequestHandler):
   def get(self):
-    ERROR_MESSAGES = {
+    self.ERROR_MESSAGES = {
         'wrongPassword': 'Password is incorrect.',
         'incorrectEmail': 'Please, enter valid email address.',
         'wrongEmail': 'Email not found.'
     }
+
     template_values = {
-        'error': ERROR_MESSAGES.get(self.request.get('error')),
+        'error': self.ERROR_MESSAGES.get(self.request.get('error')),
         'email': self.request.get('email')
         }
     path = os.path.join(os.path.dirname(__file__), 'login.html')
     self.response.out.write(template.render(path, template_values))
 
   def post(self):
-    if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    xhr = self.request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    if xhr:
       logging.info('xhr')
 
-    email = self.request.get('email')
-    if re.match('^[-.\w]+@(?:[a-z\d][-a-z\d]+\.)+[a-z]{2,6}$', email) is None:
-      self.redirect('/login?error=incorrectEmail')
-    else:
-      user = User.all().filter('email =', email).get()
-      if user is not None:
-        salt = user.salt
-        password = self.request.get('password')
-        if re.match('^\w+$', password) is None:
-          password = ''
-        passwordHash = hashlib.sha1(password + salt).hexdigest()
+    self.email = self.request.get('email')
+    error = self.__error()
+    if error:
+      if error == 'incorrectEmail':
+        self.email = ''
 
-        if user.password == passwordHash:
-          sessionId = str(uuid.uuid4()).replace('-','')
-          memcache.set(sessionId, user.key().id(), 36000)
-          self.response.headers.add_header('Set-Cookie',
-              'sid=%s; path=/' % sessionId)
-          self.redirect('/')
-
-        else:
-          self.redirect('/login?error=wrongPassword&email=' + email)
-
+      if xhr:
+        # self.response.out.write({"error": error, "email": self.email})
+        self.response.out.write("{\"error\": \"%s\", \"email\": \"%s\"}" % \
+                                (self.ERROR_MESSAGES[error], self.email))
       else:
-        self.redirect('/login?error=wrongEmail&email=' + email)
+        self.redirect('/login?error=' + error + '&email=' + self.email)
+      return
+
+    sessionId = str(uuid.uuid4()).replace('-','')
+    memcache.set(sessionId, self.user.key().id(), 36000)
+    self.response.headers.add_header('Set-Cookie',
+        'sid=%s; path=/' % sessionId)
+    if xhr:
+      # self.response.out.write({"name": str(self.user.name)})
+      # json
+      self.response.out.write("{\"name\": \"%s\"}" % str(self.user.name))
+    else:
+      self.redirect('/')
+
+  def __error(self):
+    if re.match('^[-.\w]+@(?:[a-z\d][-a-z\d]+\.)+[a-z]{2,6}$', self.email) is None:
+      return 'incorrectEmail'
+
+    self.user = User.all().filter('email =', self.email).get()
+    if self.user is None:
+      return 'wrongEmail'
+
+    salt = self.user.salt
+    password = self.request.get('password')
+    if re.match('^\w+$', password) is None:
+      password = ''
+    passwordHash = hashlib.sha1(password + salt).hexdigest()
+
+    if self.user.password != passwordHash:
+      return 'wrongPassword'
 
 class Logout(webapp.RequestHandler):
   def get(self):
     sessionId = self.request.cookies.get('sid')
-    if sessionId:
-      memcache.delete(sessionId)
-      self.response.headers.add_header('Set-Cookie', 'sid=; path=/')
+    logging.info(sessionId)
+    # if sessionId:
+    memcache.delete(sessionId)
+    self.response.headers.add_header('Set-Cookie', 'sid=; path=/')
 
-    self.redirect('/')
+    if self.request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+      self.redirect('/')
 
 class Register(webapp.RequestHandler):
   
