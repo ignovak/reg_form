@@ -1,7 +1,6 @@
 $(':submit').click(function() {
   var error = foundErrors();
   if (error) {
-    console.log(error)
     if (!$('.error')[0])
       $('ol').prepend($('<li class="error"></li>'));
 

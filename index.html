@@ -7,10 +7,10 @@
       <br />
     {% endif %}
     {% if user %}
-      You are logged in as {{ user.name }}
+      <span class="label">You are logged in as {{ user.name }}</span>
       <a id='logout_btn' href='logout'>Logout</a>
     {% else %}
-      Hi, guest
+      <span class="label">Hi, guest</span>
       <a id='login_btn' href='login'>Login</a>
       <a href='/register'>Register</a>
     {% endif %}

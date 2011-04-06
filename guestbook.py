@@ -72,7 +72,7 @@ class MainPage(webapp.RequestHandler):
   def __error(self):
     if len(self.content) > 500:
       return 'tooLongValue'
-    if len(self.content) == 0:
+    if re.match('^\s*$', self.content):
       return 'emptyField'
 
   def __userName(self):
@@ -84,13 +84,14 @@ class MainPage(webapp.RequestHandler):
 
 
 class Login(webapp.RequestHandler):
-  def get(self):
+  def __init__(self):
     self.ERROR_MESSAGES = {
         'wrongPassword': 'Password is incorrect.',
         'incorrectEmail': 'Please, enter valid email address.',
         'wrongEmail': 'Email not found.'
     }
 
+  def get(self):
     template_values = {
         'error': self.ERROR_MESSAGES.get(self.request.get('error')),
         'email': self.request.get('email')
@@ -100,8 +101,6 @@ class Login(webapp.RequestHandler):
 
   def post(self):
     xhr = self.request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    if xhr:
-      logging.info('xhr')
 
     self.email = self.request.get('email')
     error = self.__error()

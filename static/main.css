@@ -107,3 +107,8 @@ ol.beta {
 #login_form {
   display: none;
 }
+
+span.label {
+  display: inline-block;
+  min-width: 100px;
+}
